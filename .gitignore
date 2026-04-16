@@ -1,6 +1,5 @@
 # Dados sensíveis — NUNCA commitar
 .env
-*.txt
 acessos.txt
 
 # Python
