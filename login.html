@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acesso à Internet — Wi-Fi Hotspot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0a0f1e;
+      --surface:   #111827;
+      --card:      #161f35;
+      --border:    rgba(99,179,237,0.15);
+      --accent:    #38bdf8;
+      --accent2:   #0ea5e9;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --success:   #34d399;
+      --error:     #f87171;
+      --radius:    16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── fundo animado ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(56,189,248,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(14,165,233,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .grid-overlay {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(56,189,248,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── orbs flutuantes ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 8s ease-in-out infinite;
+    }
+    .orb1 { width: 300px; height: 300px; background: #0ea5e9; top: -80px; left: -80px; animation-delay: 0s; }
+    .orb2 { width: 200px; height: 200px; background: #38bdf8; bottom: -60px; right: -60px; animation-delay: -4s; }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0px) scale(1); }
+      50%      { transform: translateY(-20px) scale(1.05); }
+    }
+
+    /* ── card ── */
+    .card {
+      position: relative; z-index: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(56,189,248,0.08);
+      animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── ícone wi-fi ── */
+    .wifi-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 8px 32px rgba(56,189,248,0.3);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%,100% { box-shadow: 0 8px 32px rgba(56,189,248,0.3); }
+      50%      { box-shadow: 0 8px 48px rgba(56,189,248,0.6); }
+    }
+
+    .wifi-icon svg { width: 32px; height: 32px; fill: #fff; }
+
+    /* ── textos ── */
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    /* ── erro ── */
+    .erro-box {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      color: var(--error);
+      font-size: 0.875rem;
+      display: flex; align-items: center; gap: 8px;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+
+    /* ── label e input ── */
+    .field { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex; align-items: center;
+    }
+
+    .input-wrap .flag {
+      position: absolute; left: 16px;
+      font-size: 1.1rem;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    input[type="tel"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px 14px 48px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    input[type="tel"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
+    }
+
+    input[type="tel"]::placeholder { color: var(--muted); font-weight: 300; }
+
+    /* ── hint ── */
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 6px;
+      padding-left: 4px;
+    }
+
+    /* ── botão ── */
+    button[type="submit"] {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(14,165,233,0.4);
+      margin-top: 8px;
+    }
+
+    button[type="submit"]:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(14,165,233,0.5);
+    }
+
+    button[type="submit"]:active { transform: translateY(0); }
+
+    /* ── carregando ── */
+    button[type="submit"].loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    button[type="submit"].loading::after {
+      content: '';
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── info badges ── */
+    .badges {
+      display: flex; gap: 8px; justify-content: center;
+      margin-top: 28px; flex-wrap: wrap;
+    }
+
+    .badge {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(56,189,248,0.07);
+      border: 1px solid rgba(56,189,248,0.15);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .badge svg { width: 12px; height: 12px; fill: var(--accent); }
+
+    /* ── rodapé ── */
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+
+    @media (max-width: 460px) {
+      .card { padding: 36px 24px; border-radius: 20px; }
+      h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="card">
+
+  <div class="wifi-icon">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1.5 8.5C5 5 9.25 3 12 3s7 2 10.5 5.5l-2 2C17.5 7.5 14.8 6 12 6s-5.5 1.5-8.5 5.5l-2-3zm4 4C7 10 9.4 8.5 12 8.5s5 1.5 6.5 4l-2 2c-1-1.5-2.7-2.5-4.5-2.5s-3.5 1-4.5 2.5l-2-2zm4 4c.7-.9 1.8-1.5 2.5-1.5s1.8.6 2.5 1.5L12 19l-2.5-2.5z"/>
+    </svg>
+  </div>
+
+  <h1>Wi-Fi Gratuito</h1>
+  <p class="subtitle">Conecte-se com seu número de celular</p>
+
+  {% if erro %}
+  <div class="erro-box">
+    <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    {{ erro }}
+  </div>
+  {% endif %}
+
+  <form action="/autenticar" method="POST" id="loginForm">
+    <input type="hidden" name="dst" value="{{ dst }}" />
+    <input type="hidden" name="ip"  value="{{ ip }}" />
+    <input type="hidden" name="mac" value="{{ mac }}" />
+
+    <div class="field">
+      <label for="celular">Número de Celular</label>
+      <div class="input-wrap">
+        <span class="flag">🇧🇷</span>
+        <input
+          type="tel"
+          id="celular"
+          name="celular"
+          placeholder="(44) 99999-9999"
+          maxlength="15"
+          required
+          autocomplete="tel"
+          inputmode="numeric"
+        />
+      </div>
+      <p class="hint">Digite o DDD + número (ex: 44999998888)</p>
+    </div>
+
+    <button type="submit" id="btnEntrar">
+      Entrar e Navegar
+    </button>
+  </form>
+
+  <div class="badges">
+    <span class="badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      10 Mbps download
+    </span>
+    <span class="badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm-1 5h2v6h-2zm1 9a1.25 1.25 0 110-2.5A1.25 1.25 0 0112 16z"/></svg>
+      8 horas de acesso
+    </span>
+    <span class="badge">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/></svg>
+      Conexão segura
+    </span>
+  </div>
+
+  <p class="footer">Ao continuar, você concorda com os termos de uso da rede.</p>
+</div>
+
+<script>
+  // Máscara de telefone
+  const input = document.getElementById('celular');
+  input.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 7)
+      this.value = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+    else if (v.length > 2)
+      this.value = '(' + v.slice(0,2) + ') ' + v.slice(2);
+    else if (v.length > 0)
+      this.value = '(' + v;
+    else
+      this.value = v;
+  });
+
+  // Loading no submit
+  document.getElementById('loginForm').addEventListener('submit', function () {
+    const btn = document.getElementById('btnEntrar');
+    btn.textContent = 'Conectando';
+    btn.classList.add('loading');
+  });
+
+  // Auto-focus
+  window.addEventListener('load', () => input.focus());
+</script>
+</body>
+</html>

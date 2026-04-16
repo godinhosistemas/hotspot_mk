@@ -1,0 +1,20 @@
+# Dados sensíveis — NUNCA commitar
+.env
+*.txt
+acessos.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Docker
+.dockerignore
+
+# Editor
+.vscode/
+.idea/
+*.swp

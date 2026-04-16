@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Conectado! — Wi-Fi Hotspot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0f1e; --card: #161f35; --border: rgba(52,211,153,0.2);
+      --accent: #34d399; --text: #e2e8f0; --muted: #64748b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh; display: flex;
+      align-items: center; justify-content: center;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 70% 60% at 50% 30%, rgba(52,211,153,0.07) 0%, transparent 70%);
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 48px 40px;
+      max-width: 400px; width: 100%; text-align: center;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+      animation: pop 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes pop {
+      from { opacity: 0; transform: scale(0.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .check-ring {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(52,211,153,0.1);
+      border: 2px solid rgba(52,211,153,0.4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.3); }
+      50%      { box-shadow: 0 0 0 16px rgba(52,211,153,0); }
+    }
+    .check-ring svg { width: 36px; height: 36px; stroke: var(--accent); }
+    h1 {
+      font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 8px; }
+    .celular-badge {
+      display: inline-block;
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.3);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 0.95rem; font-weight: 500;
+      color: var(--accent); letter-spacing: 0.05em;
+      margin: 16px 0 24px;
+    }
+    /* Form oculto que faz o login automático no MikroTik */
+    #autoLoginForm { display: none; }
+    .btn {
+      display: inline-block; width: 100%;
+      padding: 14px; border-radius: 14px; border: none; cursor: pointer;
+      font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600;
+      background: linear-gradient(135deg, #059669, var(--accent));
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(52,211,153,0.35);
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .counter { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="check-ring">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+    </svg>
+  </div>
+
+  <h1>Tudo certo! 🎉</h1>
+  <p>Número registrado com sucesso.</p>
+  <div class="celular-badge">{{ celular }}</div>
+  <p>Você será conectado à internet em instantes.</p>
+
+  <!--
+    Este formulário envia as credenciais diretamente para o
+    servidor de login do MikroTik Hotspot (/login).
+    O MikroTik autentica e redireciona para o dst.
+  -->
+  <form id="autoLoginForm"
+        method="POST"
+        action="http://{{ mikrotik_host }}/login">
+    <input type="hidden" name="username" value="{{ celular }}"/>
+    <input type="hidden" name="password" value="{{ celular }}"/>
+    <input type="hidden" name="dst"      value="{{ dst }}"/>
+    <button type="submit">Acessar agora</button>
+  </form>
+
+  <button class="btn" onclick="conectar()">
+    Acessar a Internet
+  </button>
+  <p class="counter" id="contador">Redirecionando em <strong>5</strong>s...</p>
+</div>
+
+<script>
+  let seg = 5;
+  const el = document.querySelector('#contador strong');
+  const t = setInterval(() => {
+    seg--;
+    if (el) el.textContent = seg;
+    if (seg <= 0) { clearInterval(t); conectar(); }
+  }, 1000);
+
+  function conectar() {
+    document.getElementById('autoLoginForm').submit();
+  }
+</script>
+</body>
+</html>

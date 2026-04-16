@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acessos Registrados — Hotspot Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg:#0a0f1e; --surface:#111827; --card:#161f35;
+            --border:rgba(99,179,237,0.12); --accent:#38bdf8;
+            --text:#e2e8f0; --muted:#64748b; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);
+         color:var(--text);min-height:100dvh;padding:32px 16px;}
+    header{max-width:860px;margin:0 auto 28px;display:flex;
+           align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    h1{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;
+       background:linear-gradient(135deg,#fff 30%,var(--accent));
+       -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .badge-total{background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);
+                 border-radius:999px;padding:5px 14px;font-size:.8rem;color:var(--accent);}
+    .table-wrap{max-width:860px;margin:0 auto;
+                background:var(--card);border:1px solid var(--border);
+                border-radius:16px;overflow:hidden;}
+    table{width:100%;border-collapse:collapse;}
+    thead tr{background:rgba(56,189,248,0.06);}
+    th{padding:12px 16px;text-align:left;font-size:.75rem;
+       color:var(--muted);letter-spacing:.08em;text-transform:uppercase;
+       border-bottom:1px solid var(--border);}
+    td{padding:11px 16px;font-family:'DM Mono',monospace;font-size:.82rem;
+       border-bottom:1px solid rgba(99,179,237,0.06);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(56,189,248,0.03);}
+    .empty{text-align:center;padding:48px;color:var(--muted);font-size:.9rem;}
+    @media(max-width:600px){
+      td,th{padding:10px 10px;font-size:.75rem;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Acessos Registrados</h1>
+  <span class="badge-total">Total: {{ total }} registros</span>
+</header>
+
+<div class="table-wrap">
+  {% if registros %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Data / Hora</th>
+        <th>Ação</th>
+        <th>Celular</th>
+        <th>IP Cliente</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in registros %}
+      {% set partes = linha.split(' | ') %}
+      <tr>
+        <td style="color:var(--muted)">{{ loop.index }}</td>
+        {% if partes|length >= 4 %}
+          <td>{{ partes[0] }}</td>
+          <td>{{ partes[1] }}</td>
+          <td>{{ partes[2].replace('Celular: ', '') }}</td>
+          <td>{{ partes[3].replace('IP: ', '') }}</td>
+        {% else %}
+          <td colspan="4">{{ linha }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">Nenhum acesso registrado ainda.</div>
+  {% endif %}
+</div>
+
+</body>
+</html>
